@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html data-color-mode="light" data-dark-theme="dark" data-light-theme="light" lang="zh-CN">
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link href='https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/Primer/21.0.7/primer.css' rel='stylesheet' />
+    
+    <link rel="icon" href="https://avatars.githubusercontent.com/u/253892458?s=400&u=3697fec0fcbe80edc8f9cc3a9542f2a6a17df725&v=4"><script>
+        let theme = localStorage.getItem("meek_theme") || "light";
+        document.documentElement.setAttribute("data-color-mode", theme);
+    </script>
+<meta name="description" content="#nano 和 vim：文本编辑器。">
+<meta property="og:title" content="了解文本编辑器">
+<meta property="og:description" content="#nano 和 vim：文本编辑器。">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://cnmdbbbbb-sys.github.io/test-blog.github.io/post/le-jie-wen-ben-bian-ji-qi.html">
+<meta property="og:image" content="https://avatars.githubusercontent.com/u/253892458?s=400&u=3697fec0fcbe80edc8f9cc3a9542f2a6a17df725&v=4">
+<title>了解文本编辑器</title>
+
+
+
+</head>
+<style>
+body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;padding: 45px;font-size: 16px;font-family: sans-serif;line-height: 1.25;}
+#header{display:flex;padding-bottom:8px;border-bottom: 1px solid var(--borderColor-muted, var(--color-border-muted));margin-bottom: 16px;}
+#footer {margin-top:64px; text-align: center;font-size: small;}
+
+</style>
+
+<style>
+.postTitle{margin: auto 0;font-size:40px;font-weight:bold;}
+.title-right{display:flex;margin:auto 0 0 auto;}
+.title-right .circle{padding: 14px 16px;margin-right:8px;}
+#postBody{border-bottom: 1px solid var(--color-border-default);padding-bottom:36px;}
+#postBody hr{height:2px;}
+#cmButton{height:48px;margin-top:48px;}
+#comments{margin-top:64px;}
+.g-emoji{font-size:24px;}
+@media (max-width: 600px) {
+    body {padding: 8px;}
+    .postTitle{font-size:24px;}
+}
+
+</style>
+
+
+
+
+<body>
+    <div id="header">
+<h1 class="postTitle">了解文本编辑器</h1>
+<div class="title-right">
+    <a href="https://cnmdbbbbb-sys.github.io/test-blog.github.io" id="buttonHome" class="btn btn-invisible circle" title="首页">
+        <svg class="octicon" width="16" height="16">
+            <path id="pathHome" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+    
+    <a href="https://github.com/cnmdbbbbb-sys/test-blog.github.io/issues/5" target="_blank" class="btn btn-invisible circle" title="Issue">
+        <svg class="octicon" width="16" height="16">
+            <path id="pathIssue" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+    
+
+    <a class="btn btn-invisible circle" onclick="modeSwitch();" title="切换主题">
+        <svg class="octicon" width="16" height="16" >
+            <path id="themeSwitch" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+
+</div>
+</div>
+    <div id="content">
+<div class="markdown-body" id="postBody"><p>#nano 和 vim：文本编辑器。<br>
+nano file.txt：nano 是一个简单易用的文本编辑器，适合初学者。打开文件后可直接编辑，按 Ctrl + X 组合键退出，按提示选择是否保存修改。<br>
+vim file.txt：功能强大但学习曲线较陡。vim 有命令模式、插入模式和底行模式。进入文件后默认是命令模式，按 i 键进入插入模式进行编辑，编辑完成后按 Esc 键回到命令模式，输入 :wq 保存并退出，输入 :q! 不保存直接退出。<br>
+推荐vim功能更强大<br>
+#vim常用命令</p>
+<ol>
+<li>
+<p>进入vim命令<br>
+vi/vim filename : 打开或新建文件，将光标置于第一行行首<br>
+vi +n filename: 打开文件，并将将光标置于第n行行首<br>
+vi -r filename ：在上次正在使用vi编辑时发生系统崩溃，恢复filename<br>
+vi filename1 filename2 ：打开多个文件，依次进行编辑<br>
+:n 切换到下一个文件 (n=next)<br>
+:N 切换到上一个文件</p>
+</li>
+<li>
+<p>光标移动命令<br>
+h: 光标左移一个字符<br>
+l: 光标右移一个字符<br>
+space: 光标右移一个字符<br>
+backspace：光标左移一个字符<br>
+k/Ctrl+p: 光标上移两行（垂直上移）<br>
+j/Ctrl+n: 光标下移两行（垂直下移）<br>
+Enter: 光标下移一行（自动到行首）<br>
+w/W：光标右移一个单词（包括标点）至字首<br>
+b/B：光标左移一个单词（包括标点）至字首<br>
+e/E ：光标右移一个单词（包括标点）至字尾<br>
+): 光标移至句尾<br>
+(：光标移至句首<br>
+}：光标移至段落开头<br>
+{：光标移至段落结尾<br>
+nG：光标移至第n行首<br>
+n$：光标移至第n行尾<br>
+n+：光标下移n行<br>
+n-：光标上移n行<br>
+H ：光标移至屏幕顶行<br>
+M ：光标移至屏幕中间行<br>
+L ：光标移至屏幕最后行<br>
+0：（零）光标移至当前行首<br>
+$：光标移至当前行尾<br>
+^:光标移至当前行首</p>
+</li>
+<li>
+<p>屏幕滚动命令<br>
+Ctrl+u：向文件首翻半屏<br>
+Ctrl+d：向文件尾翻半屏<br>
+Ctrl+f：向文件尾翻一屏<br>
+Ctrl＋b：向文件首翻一屏<br>
+nz：将第n行滚至屏幕顶部，不指定n时将当前行滚至屏幕顶部</p>
+</li>
+<li>
+<p>插入文本命令<br>
+i ：在光标前插入字符<br>
+I ：在当前行首插入字符<br>
+a：光标后插入字符<br>
+A：在当前行尾字符<br>
+o：在当前行之下新开一行插入字符<br>
+O：在当前行之上新开一行<br>
+r：替换当前光标所指字符<br>
+R：替换当前字符及其后的字符，直至按ESC键<br>
+s：从当前光标位置处开始，以输入的文本替代指定数目的字符<br>
+S：删除指定数目的行，并以所输入文本代替之<br>
+ncw/nCW：修改指定数目的字符<br>
+nCC：修改指定数目的行</p>
+</li>
+<li>
+<p>删除命令<br>
+ndw/ndW：删除光标处开始及其后的n-1个字<br>
+do：删至行首<br>
+d$：删至行尾<br>
+ndd：删除当前行及其后n-1行<br>
+x/X：删除一个字符，x删除光标后的，而X删除光标前的<br>
+Ctrl+u：删除输入方式下所输入的文本</p>
+</li>
+<li>
+<p>搜索及替换命令<br>
+/pattern：从光标开始处向文件尾搜索与pattern匹配的字符（向下搜索）<br>
+?pattern：从光标开始处向文件首搜索与pattern匹配的字符（向上搜索）<br>
+n：在同一方向重复上一次搜索命令<br>
+N：在反方向上重复上一次搜索命令<br>
+:s/p1/p2/g：将当前行中所有p1均用p2替代<br>
+:n1,n2s/p1/p2/g：将第n1至n2行中所有p1均用p2替代<br>
+:g/p1/s//p2/g：将文件中所有p1均用p2替换</p>
+</li>
+<li>
+<p>选项设置<br>
+all：列出所有选项设置情况<br>
+term：设置终端类型<br>
+ignorance：在搜索中忽略大小写<br>
+list：显示制表位(Ctrl+I)和行尾标志（$)<br>
+number：显示行号<br>
+report：显示由面向行的命令修改过的数目<br>
+terse：显示简短的警告信息<br>
+warn：在转到别的文件时若没保存当前文件则显示NO write信息<br>
+nomagic：允许在搜索模式中，使用前面不带“\”的特殊字符<br>
+nowrapscan：禁止vi在搜索到达文件两端时，又从另一端开始<br>
+mesg：允许vi显示其他用户用write写到自己终端上的信息</p>
+</li>
+<li>
+<p>命令模式<br>
+:n1,n2 co n3：将n1行到n2行之间的内容拷贝到第n3行下<br>
+:n1,n2 m n3：将n1行到n2行之间的内容移至到第n3行下<br>
+:n1,n2 d ：将n1行到n2行之间的内容删除<br>
+:w：保存当前文件<br>
+:e filename：打开文件filename进行编辑<br>
+:x：保存当前文件并退出<br>
+:q：退出vi<br>
+:q!：不保存文件并退出vi<br>
+:!command：执行shell命令command<br>
+:n1,n2 w!command：将文件中n1行至n2行的内容作为command的输入并执行之，若不指定n1，n2，则表示将整个文件内容作为command的输入<br>
+:r!command：将命令command的输出结果放到当前行</p>
+</li>
+<li>
+<p>寄存器操作<br>
+“?nyy：将当前行及其下n行的内容保存到寄存器？中，其中?为一个字母，n为一个数字<br>
+“?nyw：将当前行及其下n个字保存到寄存器？中，其中?为一个字母，n为一个数字<br>
+“?nyl：将当前行及其下n个字符保存到寄存器？中，其中?为一个字母，n为一个数字<br>
+“?p：取出寄存器？中的内容并将其放到光标位置处。这里？可以是一个字母，也可以是一个数字<br>
+ndd：将当前行及其下共n行文本删除，并将所删内容放到1号删除寄存器中</p>
+</li>
+<li>
+<p>vim 模式介绍<br>
+正常模式 (Normal-mode)<br>
+插入模式 (Insert-mode)<br>
+命令模式 (Command-mode)<br>
+可视模式 (Visual-mode)<br>
+(1). 正常模式<br>
+启动vim后默认处于正常模式。不论位于什么模式，按下键(有时需要按两下）都会进入正常模式<br>
+(2). 插入模式<br>
+在正常模式中按下i, I, a, A等键，会进入插入模式; 在插入模式中，击键时会写入相应的字符<br>
+(3). 命令模式<br>
+在正常模式中，按下:（英文冒号）键，会进入命令模式。在命令模式中可以执行一些输入并执行一些vim或插件提供的指令，就像在shell里一样。这些指令包括设置环境、文件操作、调用某个功能等<br>
+(4). 可视模式<br>
+在正常模式中按下v, V, +v，可以进入可视模式, 可视模式中的操作有点像拿鼠标进行操作，选择文本的时候有一种鼠标选择的即视感，有时候会很方便。</p>
+</li>
+</ol></div>
+<div style="font-size:small;margin-top:8px;float:right;"></div>
+
+<button class="btn btn-block" type="button" onclick="openComments()" id="cmButton">评论</button>
+<div class="comments" id="comments"></div>
+
+</div>
+    <div id="footer"><div id="footer1">Copyright © <span id="copyrightYear"></span> <a href="https://cnmdbbbbb-sys.github.io/test-blog.github.io">Linux从入门到放弃</a></div>
+<div id="footer2">
+    <span id="runday"></span><span>Powered by <a href="https://meekdai.com/Gmeek.html" target="_blank">Gmeek</a></span>
+</div>
+
+<script>
+var now=new Date();
+document.getElementById("copyrightYear").innerHTML=now.getFullYear();
+
+if(""!=""){
+    var startSite=new Date("");
+    var diff=now.getTime()-startSite.getTime();
+    var diffDay=Math.floor(diff/(1000*60*60*24));
+    document.getElementById("runday").innerHTML="网站运行"+diffDay+"天"+" • ";
+}
+</script></div>
+</body>
+<script>
+var IconList={'sun': 'M8 10.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM8 12a4 4 0 100-8 4 4 0 000 8zM8 0a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0V.75A.75.75 0 018 0zm0 13a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 018 13zM2.343 2.343a.75.75 0 011.061 0l1.06 1.061a.75.75 0 01-1.06 1.06l-1.06-1.06a.75.75 0 010-1.06zm9.193 9.193a.75.75 0 011.06 0l1.061 1.06a.75.75 0 01-1.06 1.061l-1.061-1.06a.75.75 0 010-1.061zM16 8a.75.75 0 01-.75.75h-1.5a.75.75 0 010-1.5h1.5A.75.75 0 0116 8zM3 8a.75.75 0 01-.75.75H.75a.75.75 0 010-1.5h1.5A.75.75 0 013 8zm10.657-5.657a.75.75 0 010 1.061l-1.061 1.06a.75.75 0 11-1.06-1.06l1.06-1.06a.75.75 0 011.06 0zm-9.193 9.193a.75.75 0 010 1.06l-1.06 1.061a.75.75 0 11-1.061-1.06l1.06-1.061a.75.75 0 011.061 0z', 'moon': 'M9.598 1.591a.75.75 0 01.785-.175 7 7 0 11-8.967 8.967.75.75 0 01.961-.96 5.5 5.5 0 007.046-7.046.75.75 0 01.175-.786zm1.616 1.945a7 7 0 01-7.678 7.678 5.5 5.5 0 107.678-7.678z', 'sync': 'M1.705 8.005a.75.75 0 0 1 .834.656 5.5 5.5 0 0 0 9.592 2.97l-1.204-1.204a.25.25 0 0 1 .177-.427h3.646a.25.25 0 0 1 .25.25v3.646a.25.25 0 0 1-.427.177l-1.38-1.38A7.002 7.002 0 0 1 1.05 8.84a.75.75 0 0 1 .656-.834ZM8 2.5a5.487 5.487 0 0 0-4.131 1.869l1.204 1.204A.25.25 0 0 1 4.896 6H1.25A.25.25 0 0 1 1 5.75V2.104a.25.25 0 0 1 .427-.177l1.38 1.38A7.002 7.002 0 0 1 14.95 7.16a.75.75 0 0 1-1.49.178A5.5 5.5 0 0 0 8 2.5Z', 'home': 'M6.906.664a1.749 1.749 0 0 1 2.187 0l5.25 4.2c.415.332.657.835.657 1.367v7.019A1.75 1.75 0 0 1 13.25 15h-3.5a.75.75 0 0 1-.75-.75V9H7v5.25a.75.75 0 0 1-.75.75h-3.5A1.75 1.75 0 0 1 1 13.25V6.23c0-.531.242-1.034.657-1.366l5.25-4.2Zm1.25 1.171a.25.25 0 0 0-.312 0l-5.25 4.2a.25.25 0 0 0-.094.196v7.019c0 .138.112.25.25.25H5.5V8.25a.75.75 0 0 1 .75-.75h3.5a.75.75 0 0 1 .75.75v5.25h2.75a.25.25 0 0 0 .25-.25V6.23a.25.25 0 0 0-.094-.195Z', 'github': 'M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z'};
+var utterancesLoad=0;
+
+let themeSettings={
+    "dark": ["dark","moon","#00f0ff","dark-blue"],
+    "light": ["light","sun","#ff5000","github-light"],
+    "auto": ["auto","sync","","preferred-color-scheme"]
+};
+function changeTheme(mode, icon, color, utheme){
+    document.documentElement.setAttribute("data-color-mode",mode);
+    document.getElementById("themeSwitch").setAttribute("d",value=IconList[icon]);
+    document.getElementById("themeSwitch").parentNode.style.color=color;
+    if(utterancesLoad==1){utterancesTheme(utheme);}
+}
+function modeSwitch(){
+    let currentMode=document.documentElement.getAttribute('data-color-mode');
+    let newMode = currentMode === "light" ? "dark" : currentMode === "dark" ? "auto" : "light";
+    localStorage.setItem("meek_theme", newMode);
+    if(themeSettings[newMode]){
+        changeTheme(...themeSettings[newMode]);
+    }
+}
+function utterancesTheme(theme){
+    const message={type:'set-theme',theme: theme};
+    const iframe=document.getElementsByClassName('utterances-frame')[0];
+    iframe.contentWindow.postMessage(message,'https://utteranc.es');
+}
+if(themeSettings[theme]){changeTheme(...themeSettings[theme]);}
+console.log("\n %c Gmeek last https://github.com/Meekdai/Gmeek \n","padding:5px 0;background:#02d81d;color:#fff");
+</script>
+
+<script>
+document.getElementById("pathHome").setAttribute("d",IconList["home"]);
+document.getElementById("pathIssue").setAttribute("d",IconList["github"]);
+
+
+
+function openComments(){
+    cm=document.getElementById("comments");
+    cmButton=document.getElementById("cmButton");
+    cmButton.innerHTML="loading";
+    span=document.createElement("span");
+    span.setAttribute("class","AnimatedEllipsis");
+    cmButton.appendChild(span);
+
+    script=document.createElement("script");
+    script.setAttribute("src","https://utteranc.es/client.js");
+    script.setAttribute("repo","cnmdbbbbb-sys/test-blog.github.io");
+    script.setAttribute("issue-term","title");
+    
+    if(localStorage.getItem("meek_theme")=="dark"){script.setAttribute("theme","dark-blue");}
+    else if(localStorage.getItem("meek_theme")=="light") {script.setAttribute("theme","github-light");}
+    else{script.setAttribute("theme","preferred-color-scheme");}
+    
+    script.setAttribute("crossorigin","anonymous");
+    script.setAttribute("async","");
+    cm.appendChild(script);
+
+    int=self.setInterval("iFrameLoading()",200);
+}
+
+function iFrameLoading(){
+    var utterances=document.getElementsByClassName('utterances');
+    if(utterances.length==1){
+        if(utterances[0].style.height!=""){
+            utterancesLoad=1;
+            int=window.clearInterval(int);
+            document.getElementById("cmButton").style.display="none";
+            console.log("utterances Load OK");
+        }
+    }
+}
+
+
+
+</script>
+
+
+</html>
