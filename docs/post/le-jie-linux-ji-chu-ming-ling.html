@@ -97,7 +97,39 @@ sed：流编辑器，用于文本替换和处理。<br>
 awk：强大的文本处理工具，可用于数据提取和分析。<br>
 #自定义配置<br>
 个性化设置：可以通过修改终端的配置文件来实现个性化设置，如更改字体、颜色方案、提示符样式等。以 GNOME Terminal 为例，可以在其设置中选择不同的主题和字体。<br>
-环境变量配置：环境变量用于定义系统的运行环境，用户可以通过修改 ~/.bashrc 或 ~/.bash_profile 文件来配置自己的环境变量。例如，设置 PATH 环境变量，将自定义的脚本目录添加到系统的可执行路径中。</p></div>
+环境变量配置：环境变量用于定义系统的运行环境，用户可以通过修改 ~/.bashrc 或 ~/.bash_profile 文件来配置自己的环境变量。例如，设置 PATH 环境变量，将自定义的脚本目录添加到系统的可执行路径中。</p>
+<p>#硬件信息<br>
+在Ubuntu系统里，可借助多种命令查看硬件信息，下面是一些常用命令：</p>
+<ol>
+<li>CPU信息<br>
+lscpu：此命令能展示CPU的详细信息，像架构、核心数、线程数、频率等。<br>
+lscpu<br>
+cat /proc/cpuinfo：读取/proc/cpuinfo文件来获取CPU信息。<br>
+cat /proc/cpuinfo</li>
+<li>内存信息<br>
+free -h：以人类可读的格式显示系统的内存使用情况，涵盖总内存、已用内存、空闲内存等。<br>
+free -h<br>
+cat /proc/meminfo：读取/proc/meminfo文件以获取更详尽的内存信息。<br>
+cat /proc/meminfo</li>
+<li>硬盘信息<br>
+lsblk：列出所有可用块设备的信息，包含硬盘、分区等。<br>
+lsblk<br>
+df -h：以人类可读的格式显示磁盘使用情况，包括每个挂载点的总容量、已用容量、可用容量等。<br>
+df -h<br>
+sudo fdisk -l：显示硬盘的分区表信息，要使用sudo获取足够权限。<br>
+sudo fdisk -l</li>
+<li>显卡信息<br>
+lspci | grep VGA：通过lspci命令列出所有PCI设备，再用grep过滤出显卡信息。<br>
+lspci | grep VGA<br>
+lshw -C display：显示详细的显卡硬件信息，需使用sudo获取足够权限。<br>
+sudo lshw -C display</li>
+<li>系统信息<br>
+uname -a：显示系统的内核信息、主机名、发行版本等。<br>
+uname -a<br>
+lsb_release -a：显示Ubuntu的发行版本信息。<br>
+lsb_release -a<br>
+你可以在终端里输入这些命令来查看相应的硬件信息。</li>
+</ol></div>
 <div style="font-size:small;margin-top:8px;float:right;"></div>
 
 <button class="btn btn-block" type="button" onclick="openComments()" id="cmButton">评论</button>
