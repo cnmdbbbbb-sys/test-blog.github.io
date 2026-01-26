@@ -135,9 +135,14 @@ files - 表示要查找的文件名，可以同时查找多个文件，如果省
 <code class="notranslate">grep hello file.txt</code><br>
 2、在文件夹 dir 中递归查找所有文件中匹配正则表达式 "pattern" 的行，并打印匹配行所在的文件名和行号：<br>
 <code class="notranslate">grep -r -n pattern dir/</code><br>
-3、在标准输入中查找字符串 "world"，并只打印匹配的行数：<br>
-<code class="notranslate">echo "hello world" | grep -c world</code><br>
-#awk</p>
+3、使用 grep 命令结合正则表达式在文件中进行搜索：</p>
+<ul>
+<li>在文件 example.txt 中查找所有包含数字的行。</li>
+<li>在文件 example.txt 中查找所有以 http:// 或 https:// 开头的 URL 地址。<br>
+<code class="notranslate">  grep '[0-9]' example.txt</code><br>
+<code class="notranslate">  grep -E '^https?://' example.txt</code><br>
+#awk</li>
+</ul>
 <p>#sed</p></div>
 <div style="font-size:small;margin-top:8px;float:right;"></div>
 
