@@ -10,10 +10,10 @@
         let theme = localStorage.getItem("meek_theme") || "light";
         document.documentElement.setAttribute("data-color-mode", theme);
     </script>
-<meta name="description" content="#grep
+<meta name="description" content="# grep
 Linux grep (global regular expression) 命令用于查找文件里符合条件的字符串或正则表达式。">
 <meta property="og:title" content="了解正则三剑客">
-<meta property="og:description" content="#grep
+<meta property="og:description" content="# grep
 Linux grep (global regular expression) 命令用于查找文件里符合条件的字符串或正则表达式。">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://cnmdbbbbb-sys.github.io/test-blog.github.io/post/le-jie-zheng-ze-san-jian-ke.html">
@@ -85,25 +85,25 @@ body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;
 </div>
 </div>
     <div id="content">
-<div class="markdown-body" id="postBody"><p>#grep<br>
-Linux grep (global regular expression) 命令用于查找文件里符合条件的字符串或正则表达式。</p>
+<div class="markdown-body" id="postBody"><h1>grep</h1>
+<p>Linux grep (global regular expression) 命令用于查找文件里符合条件的字符串或正则表达式。</p>
 <p>grep 指令用于查找内容包含指定的范本样式的文件，如果发现某文件的内容符合所指定的范本样式，预设 grep 指令会把含有范本样式的那一列显示出来。若不指定任何文件名称，或是所给予的文件名为 -，则 grep 指令会从标准输入设备读取数据。</p>
-<p>语法</p>
+<h2>语法</h2>
 <pre class="notranslate"><code class="notranslate">grep [options] pattern [files]
 或
 grep [-abcEFGhHilLnqrsvVwxy][-A&lt;显示行数&gt;][-B&lt;显示列数&gt;][-C&lt;显示列数&gt;][-d&lt;进行动作&gt;][-e&lt;范本样式&gt;][-f&lt;范本文件&gt;][--help][范本样式][文件或目录...]
 </code></pre>
 <p>pattern - 表示要查找的字符串或正则表达式。<br>
 files - 表示要查找的文件名，可以同时查找多个文件，如果省略 files 参数，则默认从标准输入中读取数据。</p>
-<p>常用选项：：</p>
+<h2>常用选项：：</h2>
 <p>-i：忽略大小写进行匹配。<br>
 -v：反向查找，只打印不匹配的行。<br>
 -n：显示匹配行的行号。<br>
 -r：递归查找子目录中的文件。<br>
 -l：只打印匹配的文件名。<br>
 -c：只打印匹配的行数。<br>
--E : 将样式为延伸的正则表达式来使用。<br>
-更多参数说明：</p>
+-E : 将样式为延伸的正则表达式来使用。</p>
+<h2>更多参数说明：</h2>
 <p>-a : 不要忽略二进制的数据。<br>
 -A&lt;显示行数&gt; =&lt;显示行数&gt; : 除了显示符合范本样式的那一列之外，并显示该行之后的内容。<br>
 -b  : 在显示符合样式的那一行之前，标示出该行第一个字符的编号。<br>
@@ -130,8 +130,8 @@ files - 表示要查找的文件名，可以同时查找多个文件，如果省
 -w  : 只显示全字符合的列。<br>
 -x --line-regexp : 只显示全列符合的列。<br>
 -y : 此参数的效果和指定"-i"参数相同。</p>
-<p>##实例<br>
-1、在文件 file.txt 中查找字符串 "hello"，并打印匹配的行：<br>
+<h2>实例</h2>
+<p>1、在文件 file.txt 中查找字符串 "hello"，并打印匹配的行：<br>
 <code class="notranslate">grep hello file.txt</code><br>
 2、在文件夹 dir 中递归查找所有文件中匹配正则表达式 "pattern" 的行，并打印匹配行所在的文件名和行号：<br>
 <code class="notranslate">grep -r -n pattern dir/</code><br>
@@ -140,10 +140,10 @@ files - 表示要查找的文件名，可以同时查找多个文件，如果省
 <li>在文件 example.txt 中查找所有包含数字的行。</li>
 <li>在文件 example.txt 中查找所有以 http:// 或 https:// 开头的 URL 地址。<br>
 <code class="notranslate">  grep '[0-9]' example.txt</code><br>
-<code class="notranslate">  grep -E '^https?://' example.txt</code><br>
-#awk</li>
+<code class="notranslate">  grep -E '^https?://' example.txt</code></li>
 </ul>
-<p>#sed</p></div>
+<h1>awk</h1>
+<h1>sed</h1></div>
 <div style="font-size:small;margin-top:8px;float:right;"></div>
 
 <button class="btn btn-block" type="button" onclick="openComments()" id="cmButton">评论</button>
