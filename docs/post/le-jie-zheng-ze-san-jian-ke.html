@@ -143,6 +143,55 @@ files - 表示要查找的文件名，可以同时查找多个文件，如果省
 <code class="notranslate">  grep -E '^https?://' example.txt</code></li>
 </ul>
 <h1>awk</h1>
+<p>awk 是一种处理文本文件的语言，是一个强大的文本分析工具。</p>
+<p>awk 可以逐行读取文本文件，并提供类似编程语言的功能，例如：</p>
+<p>变量定义与计算<br>
+条件判断与循环<br>
+字符串处理与格式化输出<br>
+这些特性让 AWK 在处理结构化文本（如 CSV、日志文件）时非常高效。</p>
+<p>之所以叫 awk 是因为其取了三位创始人 Alfred Aho，Peter Weinberger, 和 Brian Kernighan 的 Family Name 的首字符。</p>
+<h2>语法</h2>
+<p><code class="notranslate">awk options 'pattern {action}' file</code></p>
+<h2>选项参数说明：</h2>
+<p>options：是一些选项，用于控制 awk 的行为。<br>
+pattern：是用于匹配输入数据的模式。如果省略，则 awk 将对所有行进行操作。<br>
+{action}：是在匹配到模式的行上执行的动作。如果省略，则默认动作是打印整行。</p>
+<h3>options 参数说明：</h3>
+<p>-F &lt;分隔符&gt;： 指定输入字段的分隔符，默认是空格。使用这个选项可以指定不同于默认分隔符的字段分隔符。</p>
+<p>-v &lt;变量名&gt;=&lt;值&gt;： 设置 awk 内部的变量值。可以使用该选项将外部值传递给 awk 脚本中的变量。</p>
+<p>-f &lt;脚本文件&gt;： 指定一个包含 awk 脚本的文件。这样可以在文件中编写较大的 awk 脚本，然后通过 -f 选项将其加载。</p>
+<p>-V ： 显示 awk 的版本信息。</p>
+<p>-h ： 显示 awk 的帮助信息，包括选项和用法示例。</p>
+<h2>以下是一些常见的 awk 命令用法：</h2>
+<p>打印整行：<br>
+<code class="notranslate">awk '{print}' file</code><br>
+打印特定列：<br>
+<code class="notranslate">awk '{print $1, $2}' file</code><br>
+使用分隔符指定列：<br>
+<code class="notranslate">awk -F',' '{print $1, $2}' file</code><br>
+打印行数：<br>
+<code class="notranslate">awk '{print NR, $0}' file</code><br>
+打印行数满足条件的行：<br>
+<code class="notranslate">awk '/pattern/ {print NR, $0}' file</code><br>
+计算列的总和：<br>
+<code class="notranslate">awk '{sum += $1} END {print sum}' file</code><br>
+打印最大值：<br>
+<code class="notranslate">awk 'max &lt; $1 {max = $1} END {print max}' file</code><br>
+格式化输出：<br>
+<code class="notranslate">awk '{printf "%-10s %-10s\n", $1, $2}' file</code></p>
+<h2>实例</h2>
+<ol>
+<li>有一个文本文件 students.txt，内容格式如下：<br>
+Alice|20|Math<br>
+Bob|22|Physics<br>
+Charlie|21|Chemistry</li>
+</ol>
+<ul>
+<li>使用 awk以 “|” 为分隔符，打印出每个学生的姓名和专业。<br>
+计算所有学生的平均年龄。<br>
+找出年龄最大的学生信息。<br>
+<code class="notranslate">awk -F "|" '{print "姓名：" $1 ", 专业：" $3}' students.txt</code></li>
+</ul>
 <h1>sed</h1></div>
 <div style="font-size:small;margin-top:8px;float:right;"></div>
 
