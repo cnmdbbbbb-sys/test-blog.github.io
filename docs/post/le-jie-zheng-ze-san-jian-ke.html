@@ -200,16 +200,16 @@ Charlie|21|Chemistry</li>
 <h1>sed</h1>
 <h1>sed (Stream Editor)</h1>
 <p>sed 是一种流编辑器，用于对输入流（文件或管道）进行基本的文本转换。它在处理自动化脚本中的配置文件修改时极其强大。</p>
-<p>##语法<br>
-sed [options] 'command' file</p>
-<p>##常用命令动作：<br>
-a：新增，在当前行后添加一行或多行。<br>
+<h2>语法</h2>
+<p>sed [options] 'command' file</p>
+<h2>常用命令动作：</h2>
+<p>a：新增，在当前行后添加一行或多行。<br>
 d：删除，删除匹配的行。<br>
 i：插入，在当前行前添加一行或多行。<br>
 p：打印，通常与 -n 选项一起使用。<br>
 s：替换，最常用的功能（例如 s/old/new/g）。</p>
-<p>##实例<br>
-替换配置文件中的 IP 地址：<br>
+<h2>实例</h2>
+<p>替换配置文件中的 IP 地址：<br>
 <code class="notranslate">sed -i 's/127.0.0.1/192.168.1.100/g' config.yaml</code><br>
 删除文件中的空行：<br>
 <code class="notranslate">sed -i '/^$/d' file.txt</code><br>
