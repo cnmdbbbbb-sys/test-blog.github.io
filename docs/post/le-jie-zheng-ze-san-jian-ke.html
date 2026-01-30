@@ -193,27 +193,9 @@ Charlie|21|Chemistry</li>
 <code class="notranslate">awk -F "|" '{print "姓名：" $1 ", 专业：" $3}' students.txt</code></li>
 </ul>
 <p><a target="_blank" rel="noopener noreferrer" href="https://github.com/user-attachments/assets/943fd190-6eb6-4cd3-ad95-5fb51472b3e4"><img width="584" height="112" alt="Image" src="https://github.com/user-attachments/assets/943fd190-6eb6-4cd3-ad95-5fb51472b3e4" style="max-width: 100%; height: auto; max-height: 112px;"></a></p>
-`awk -F "|" '
-  BEGIN {total_age = 0; count = 0}  # 初始化总年龄和计数
-  {total_age += $2; count++}        # 累加年龄，计数+1
-  END {
-    if (count &gt; 0) {
-      avg = total_age / count;
-      printf "平均年龄：%.2f\n", avg  # 保留2位小数
-    }
-  }
-' students.txt`
-<p><a target="_blank" rel="noopener noreferrer" href="https://github.com/user-attachments/assets/6b46a8da-32c7-41a9-8b05-2bffa1c407e2"><img width="471" height="173" alt="Image" src="https://github.com/user-attachments/assets/6b46a8da-32c7-41a9-8b05-2bffa1c407e2" style="max-width: 100%; height: auto; max-height: 173px;"></a></p>
-`awk -F "|" '
-  NR == 1 {max_age = $2; max_info = $0}  # 第一行初始化最大年龄和信息
-  NR &gt; 1 {
-    if ($2 &gt; max_age) {                  # 若当前行年龄更大，更新最大值
-      max_age = $2;
-      max_info = $0;
-    }
-  }
-  END {print "年龄最大的学生：" max_info}
-' students.txt`
+<p><code class="notranslate">awk -F "|" ' BEGIN {total_age = 0; count = 0}  # 初始化总年龄和计数 {total_age += $2; count++}        # 累加年龄，计数+1 END { if (count &gt; 0) { avg = total_age / count; printf "平均年龄：%.2f\n", avg  # 保留2位小数 } } ' students.txt</code><br>
+<a target="_blank" rel="noopener noreferrer" href="https://github.com/user-attachments/assets/6b46a8da-32c7-41a9-8b05-2bffa1c407e2"><img width="471" height="173" alt="Image" src="https://github.com/user-attachments/assets/6b46a8da-32c7-41a9-8b05-2bffa1c407e2" style="max-width: 100%; height: auto; max-height: 173px;"></a></p>
+<p><code class="notranslate">awk -F "|" ' NR == 1 {max_age = $2; max_info = $0}  # 第一行初始化最大年龄和信息 NR &gt; 1 { if ($2 &gt; max_age) {                  # 若当前行年龄更大，更新最大值 max_age = $2; max_info = $0; } } END {print "年龄最大的学生：" max_info} ' students.txt</code></p>
 <p><a target="_blank" rel="noopener noreferrer" href="https://github.com/user-attachments/assets/967339e6-7c3f-4fa8-9e12-1511eea951d4"><img width="573" height="175" alt="Image" src="https://github.com/user-attachments/assets/967339e6-7c3f-4fa8-9e12-1511eea951d4" style="max-width: 100%; height: auto; max-height: 175px;"></a></p>
 <h1>sed</h1></div>
 <div style="font-size:small;margin-top:8px;float:right;"></div>
