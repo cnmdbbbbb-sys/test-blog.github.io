@@ -1,5 +1,17 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>与其提升自己，不如抱怨他人</title><link>https://cnmdbbbbb-sys.github.io/test-blog.github.io</link><description>记录学习过程</description><copyright>与其提升自己，不如抱怨他人</copyright><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>https://avatars.githubusercontent.com/u/253892458?s=400&amp;u=3697fec0fcbe80edc8f9cc3a9542f2a6a17df725&amp;v=4</url><title>avatar</title><link>https://cnmdbbbbb-sys.github.io/test-blog.github.io</link></image><lastBuildDate>Fri, 30 Jan 2026 17:54:33 +0000</lastBuildDate><managingEditor>与其提升自己，不如抱怨他人</managingEditor><ttl>60</ttl><webMaster>与其提升自己，不如抱怨他人</webMaster><item><title>了解正则三剑客</title><link>https://cnmdbbbbb-sys.github.io/test-blog.github.io/post/le-jie-zheng-ze-san-jian-ke.html</link><description># grep
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>与其提升自己，不如抱怨他人</title><link>https://cnmdbbbbb-sys.github.io/test-blog.github.io</link><description>记录学习过程</description><copyright>与其提升自己，不如抱怨他人</copyright><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>https://avatars.githubusercontent.com/u/253892458?s=400&amp;u=3697fec0fcbe80edc8f9cc3a9542f2a6a17df725&amp;v=4</url><title>avatar</title><link>https://cnmdbbbbb-sys.github.io/test-blog.github.io</link></image><lastBuildDate>Sun, 01 Feb 2026 12:07:00 +0000</lastBuildDate><managingEditor>与其提升自己，不如抱怨他人</managingEditor><ttl>60</ttl><webMaster>与其提升自己，不如抱怨他人</webMaster><item><title>k8s从0到1设计高可用电商系统（1）环境搭建</title><link>https://cnmdbbbbb-sys.github.io/test-blog.github.io/post/k8s-cong-0-dao-1-she-ji-gao-ke-yong-dian-shang-xi-tong-%EF%BC%881%EF%BC%89-huan-jing-da-jian.html</link><description># 具体要求
+设计高可用电商系统：  
+ - K8s 部署微服务（商品、订单、支付）
+ - Prometheus + Grafana 监控
+ - CI/CD 实现自动发布
+
+# 环境介绍
+本地虚拟机VM : Ubuntu22.04
+内存：8 GB
+CPU：4核
+# 框架搭建思路
+## 一、 宏观架构设计 
+将这台虚拟机视为一个“微型数据中心”。</description><guid isPermaLink="true">https://cnmdbbbbb-sys.github.io/test-blog.github.io/post/k8s-cong-0-dao-1-she-ji-gao-ke-yong-dian-shang-xi-tong-%EF%BC%881%EF%BC%89-huan-jing-da-jian.html</guid><pubDate>Sun, 01 Feb 2026 12:06:34 +0000</pubDate></item><item><title>了解正则三剑客</title><link>https://cnmdbbbbb-sys.github.io/test-blog.github.io/post/le-jie-zheng-ze-san-jian-ke.html</link><description># grep
 Linux grep (global regular expression) 命令用于查找文件里符合条件的字符串或正则表达式。</description><guid isPermaLink="true">https://cnmdbbbbb-sys.github.io/test-blog.github.io/post/le-jie-zheng-ze-san-jian-ke.html</guid><pubDate>Mon, 26 Jan 2026 11:58:38 +0000</pubDate></item><item><title>了解文本编辑器</title><link>https://cnmdbbbbb-sys.github.io/test-blog.github.io/post/le-jie-wen-ben-bian-ji-qi.html</link><description># nano 和 vim
 nano file.txt：nano 是一个简单易用的文本编辑器，适合初学者。</description><guid isPermaLink="true">https://cnmdbbbbb-sys.github.io/test-blog.github.io/post/le-jie-wen-ben-bian-ji-qi.html</guid><pubDate>Mon, 26 Jan 2026 08:29:00 +0000</pubDate></item><item><title>了解 Linux 基础命令</title><link>https://cnmdbbbbb-sys.github.io/test-blog.github.io/post/le-jie-%20Linux%20-ji-chu-ming-ling.html</link><description># 常见命令
 ls: 列出当前目录下的文件和文件夹。</description><guid isPermaLink="true">https://cnmdbbbbb-sys.github.io/test-blog.github.io/post/le-jie-%20Linux%20-ji-chu-ming-ling.html</guid><pubDate>Mon, 26 Jan 2026 08:14:48 +0000</pubDate></item><item><title>Linux 环境搭建</title><link>https://cnmdbbbbb-sys.github.io/test-blog.github.io/post/Linux%20-huan-jing-da-jian.html</link><description># 装一个Linux系统
