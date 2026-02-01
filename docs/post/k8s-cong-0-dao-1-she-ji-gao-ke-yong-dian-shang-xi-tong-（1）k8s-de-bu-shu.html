@@ -200,7 +200,9 @@ kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.26.1
 <h1>验证时刻</h1>
 <pre class="notranslate"><code class="notranslate">kubectl get nodes
 kubectl get pods -A
-</code></pre></div>
+</code></pre>
+<p><a target="_blank" rel="noopener noreferrer" href="https://github.com/user-attachments/assets/bcb68919-1372-4357-a3af-eee020c8837f"><img width="955" height="277" alt="Image" src="https://github.com/user-attachments/assets/bcb68919-1372-4357-a3af-eee020c8837f" style="max-width: 100%; height: auto; max-height: 277px;"></a></p>
+<p>CoreDNS 是 Pending 状态：这是正常的。因为 K8s 的 DNS 服务依赖于网络插件（CNI），在网络插件准备好之前，DNS 无法工作。</p></div>
 <div style="font-size:small;margin-top:8px;float:right;"></div>
 
 <button class="btn btn-block" type="button" onclick="openComments()" id="cmButton">评论</button>
