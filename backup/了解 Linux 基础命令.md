@@ -12,6 +12,7 @@ cp：复制文件或目录。
 mv：移动或重命名文件或目录。
 hostname：显示主机名
 uname：显示系统信息。
+systemctl list-unit-files --type=service：显示已安装服务的状态
 df：显示磁盘使用情况。
 top：实时监控系统资源使用情况。
 cat：显示文件内容。
