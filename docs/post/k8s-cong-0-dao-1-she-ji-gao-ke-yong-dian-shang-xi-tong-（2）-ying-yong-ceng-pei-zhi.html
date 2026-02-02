@@ -96,7 +96,7 @@ body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;
 <li>安装 Rancher Local Path Provisioner</li>
 </ol>
 <p><code class="notranslate">kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.24/deploy/local-path-storage.yaml</code><br>
-2. 将其设为默认存储类 (关键) 这样以后你不必每次都指定 StorageClass 的名字。</p>
+2. 将其设为默认存储类 (关键) 这样以后不必每次都指定 StorageClass 的名字。</p>
 <p><code class="notranslate">kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'</code><br>
 3. 验证</p>
 <p><code class="notranslate">kubectl get sc</code></p>
