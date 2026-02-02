@@ -545,7 +545,15 @@ kubectl get pods -n ecommerce -w<br>
 <p>现在整个系统已经跑起来了，我们需要访问它。</p>
 <p>快速验证 (在虚拟机内部) 直接用 curl 访问 Ingress Controller，强制指定 Host 头。<br>
 模拟访问下单接口<br>
-<code class="notranslate">curl -H "Host: order.shop.local" http://127.0.0.1/create_order</code></p></div>
+<code class="notranslate">curl -H "Host: order.shop.local" http://127.0.0.1：&lt;端口号&gt;/create_order</code></p>
+<p><a target="_blank" rel="noopener noreferrer" href="https://github.com/user-attachments/assets/51215c48-0551-4f67-b318-495487785b65"><img width="1494" height="63" alt="Image" src="https://github.com/user-attachments/assets/51215c48-0551-4f67-b318-495487785b65" style="max-width: 100%; height: auto; max-height: 63px;"></a></p>
+<p>成功说明：<br>
+流量入口：curl 请求通过 Ingress (Nginx) 进入集群。<br>
+总指挥：流量被路由到 Order Service (served_by 显示的那个 Pod)。<br>
+服务发现与调用：<br>
+Order Service 通过 K8s DNS 找到了 product-service，获取了 iPhone 信息。<br>
+Order Service 找到了 pay-service，完成扣款（由 pay-service-8b65... 这个 Pod 处理）。<br>
+结果聚合：Order Service 把所有结果打包成 JSON 返回。</p></div>
 <div style="font-size:small;margin-top:8px;float:right;"></div>
 
 <button class="btn btn-block" type="button" onclick="openComments()" id="cmButton">评论</button>
