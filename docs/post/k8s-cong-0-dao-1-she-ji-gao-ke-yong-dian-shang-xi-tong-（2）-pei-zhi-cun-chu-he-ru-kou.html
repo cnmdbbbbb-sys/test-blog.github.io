@@ -10,9 +10,15 @@
         let theme = localStorage.getItem("meek_theme") || "light";
         document.documentElement.setAttribute("data-color-mode", theme);
     </script>
-<meta name="description" content="# 配置存储（让数据库有地方存数据）和 配置入口（能访问网页）。">
+<meta name="description" content="# 第一阶段：配置存储入口
+
+## 第一步：安装本地存储插件 (StorageClass)
+这是必须要做的，否则后续部署 MySQL、Redis 和 Prometheus 时，PVC 会一直卡在 Pending 状态。">
 <meta property="og:title" content="k8s从0到1设计高可用电商系统（2）配置存储和入口">
-<meta property="og:description" content="# 配置存储（让数据库有地方存数据）和 配置入口（能访问网页）。">
+<meta property="og:description" content="# 第一阶段：配置存储入口
+
+## 第一步：安装本地存储插件 (StorageClass)
+这是必须要做的，否则后续部署 MySQL、Redis 和 Prometheus 时，PVC 会一直卡在 Pending 状态。">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://cnmdbbbbb-sys.github.io/test-blog.github.io/post/k8s-cong-0-dao-1-she-ji-gao-ke-yong-dian-shang-xi-tong-%EF%BC%882%EF%BC%89-pei-zhi-cun-chu-he-ru-kou.html">
 <meta property="og:image" content="https://avatars.githubusercontent.com/u/253892458?s=400&u=3697fec0fcbe80edc8f9cc3a9542f2a6a17df725&v=4">
@@ -83,7 +89,7 @@ body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;
 </div>
 </div>
     <div id="content">
-<div class="markdown-body" id="postBody"><h1>配置存储（让数据库有地方存数据）和 配置入口（能访问网页）。</h1>
+<div class="markdown-body" id="postBody"><h1>第一阶段：配置存储入口</h1>
 <h2>第一步：安装本地存储插件 (StorageClass)</h2>
 <p>这是必须要做的，否则后续部署 MySQL、Redis 和 Prometheus 时，PVC 会一直卡在 Pending 状态。</p>
 <ol>
@@ -111,7 +117,173 @@ body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;
 一旦确认无误，就可以直接部署数据库了！</p>
 <pre class="notranslate"><code class="notranslate">kubectl get sc
 kubectl get pods -n ingress-nginx
-</code></pre></div>
+</code></pre>
+<p><a target="_blank" rel="noopener noreferrer" href="https://github.com/user-attachments/assets/19758d3a-5e52-4d2a-86ee-4e39db69c806"><img width="1230" height="173" alt="Image" src="https://github.com/user-attachments/assets/19758d3a-5e52-4d2a-86ee-4e39db69c806" style="max-width: 100%; height: auto; max-height: 173px;"></a></p>
+# 第二阶段：数据层部署
+任何电商系统都离不开数据。我们将部署 MySQL（存储订单和商品）和 Redis（做缓存）。使用 ConfigMap 自动初始化数据库表结构，实现“启动即用”。
+## 1. 创建数据层部署文件
+请直接在终端创建一个名为 db-layer.yaml 的文件：
+<p><code class="notranslate">vim db-layer.yaml</code></p>
+<pre class="notranslate"><code class="notranslate">YAML
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ecommerce
+---
+# ===========================
+# 1. MySQL 配置 (自动建库建表)
+# ===========================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-init-script
+  namespace: ecommerce
+data:
+  init.sql: |
+    CREATE DATABASE IF NOT EXISTS shop;
+    USE shop;
+    
+    CREATE TABLE IF NOT EXISTS product (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(100),
+      price DECIMAL(10,2),
+      stock INT
+    );
+    
+    CREATE TABLE IF NOT EXISTS orders (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      product_id INT,
+      user_id INT,
+      amount DECIMAL(10,2),
+      status VARCHAR(20) DEFAULT 'PENDING'
+    );
+    
+    -- 初始化一些测试数据
+    INSERT INTO product (name, price, stock) VALUES ('iPhone 15', 5999.00, 100);
+    INSERT INTO product (name, price, stock) VALUES ('MacBook Pro', 12999.00, 50);
+---
+# ===========================
+# 2. MySQL 部署 (有状态应用)
+# ===========================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+  namespace: ecommerce
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:5.7  # 使用 5.7 版本，资源占用少
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: "123456" # 模拟项目为了方便直接写明文，生产环境请用 Secret
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+        - name: mysql-storage
+          mountPath: /var/lib/mysql
+        - name: init-script
+          mountPath: /docker-entrypoint-initdb.d # 这里是 MySQL 自动初始化的关键目录
+      volumes:
+      - name: mysql-storage
+        persistentVolumeClaim:
+          claimName: mysql-pvc
+      - name: init-script
+        configMap:
+          name: mysql-init-script
+---
+# ===========================
+# 3. MySQL 存储声明 (PVC)
+# ===========================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+  namespace: ecommerce
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+# ===========================
+# 4. MySQL 服务暴露
+# ===========================
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  namespace: ecommerce
+spec:
+  ports:
+  - port: 3306
+  selector:
+    app: mysql
+  clusterIP: None # Headless Service，适合数据库内部通信
+---
+# ===========================
+# 5. Redis 部署 (缓存层)
+# ===========================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: ecommerce
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:alpine
+        ports:
+        - containerPort: 6379
+---
+# ===========================
+# 6. Redis 服务暴露
+# ===========================
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: ecommerce
+spec:
+  ports:
+  - port: 6379
+  selector:
+    app: redis
+</code></pre>
+<h2>2. 执行部署</h2>
+<p>运行以下命令应用配置：</p>
+<p><code class="notranslate">kubectl apply -f db-layer.yaml</code></p>
+<h2>3. 验证部署状态</h2>
+<p>需要确认三件事：</p>
+<p>PVC 绑定成功：看 MySQL 是否成功申请到了存储。<br>
+Pod 运行正常：看数据库是否启动。<br>
+数据初始化成功：看表是不是建好了。</p>
+<p>查看 PVC 状态 (STATUS 必须是 Bound)<br>
+<code class="notranslate">kubectl get pvc -n ecommerce</code><br>
+查看 Pod 状态 (必须是 Running)<br>
+<code class="notranslate">kubectl get pods -n ecommerce</code></p>
+<p>(进阶验证) 进入 MySQL 容器查看表是否存在<br>
+等 Pod Running 后执行：<br>
+<code class="notranslate"> kubectl exec -it -n ecommerce $(kubectl get pod -n ecommerce -l app=mysql -o jsonp</code></p></div>
 <div style="font-size:small;margin-top:8px;float:right;"></div>
 
 <button class="btn btn-block" type="button" onclick="openComments()" id="cmButton">评论</button>
