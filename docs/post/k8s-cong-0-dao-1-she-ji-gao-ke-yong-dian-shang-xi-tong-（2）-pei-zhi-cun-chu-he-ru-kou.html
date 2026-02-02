@@ -108,8 +108,8 @@ body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;
 <p><code class="notranslate">kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/baremetal/deploy.yaml</code><br>
 2. 验证 Pod 启动</p>
 <p><code class="notranslate">kubectl get pods -n ingress-nginx</code></p>
-<p>第三步：为项目创建专属空间<br>
-为了不污染系统环境，我们把电商项目都放在独立的 Namespace 里。</p>
+<h2>第三步：为项目创建专属空间</h2>
+<p>为了不污染系统环境，我们把电商项目都放在独立的 Namespace 里。</p>
 <p><code class="notranslate">kubectl create namespace ecommerce</code><br>
 ✅ 阶段性检查<br>
 预期输出：应看到 local-path (default)。<br>
