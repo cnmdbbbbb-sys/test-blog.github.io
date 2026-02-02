@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html data-color-mode="light" data-dark-theme="dark" data-light-theme="light" lang="zh-CN">
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link href='https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/Primer/21.0.7/primer.css' rel='stylesheet' />
+    
+    <link rel="icon" href="https://avatars.githubusercontent.com/u/253892458?s=400&u=3697fec0fcbe80edc8f9cc3a9542f2a6a17df725&v=4"><script>
+        let theme = localStorage.getItem("meek_theme") || "light";
+        document.documentElement.setAttribute("data-color-mode", theme);
+    </script>
+<meta name="description" content="# 第一阶段：配置存储入口
+
+## 第一步：安装本地存储插件 (StorageClass)
+这是必须要做的，否则后续部署 MySQL、Redis 和 Prometheus 时，PVC 会一直卡在 Pending 状态。">
+<meta property="og:title" content="k8s从0到1设计高可用电商系统（2）应用层配置">
+<meta property="og:description" content="# 第一阶段：配置存储入口
+
+## 第一步：安装本地存储插件 (StorageClass)
+这是必须要做的，否则后续部署 MySQL、Redis 和 Prometheus 时，PVC 会一直卡在 Pending 状态。">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://cnmdbbbbb-sys.github.io/test-blog.github.io/post/k8s-cong-0-dao-1-she-ji-gao-ke-yong-dian-shang-xi-tong-%EF%BC%882%EF%BC%89-ying-yong-ceng-pei-zhi.html">
+<meta property="og:image" content="https://avatars.githubusercontent.com/u/253892458?s=400&u=3697fec0fcbe80edc8f9cc3a9542f2a6a17df725&v=4">
+<title>k8s从0到1设计高可用电商系统（2）应用层配置</title>
+
+
+
+</head>
+<style>
+body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;padding: 45px;font-size: 16px;font-family: sans-serif;line-height: 1.25;}
+#header{display:flex;padding-bottom:8px;border-bottom: 1px solid var(--borderColor-muted, var(--color-border-muted));margin-bottom: 16px;}
+#footer {margin-top:64px; text-align: center;font-size: small;}
+
+</style>
+
+<style>
+.postTitle{margin: auto 0;font-size:40px;font-weight:bold;}
+.title-right{display:flex;margin:auto 0 0 auto;}
+.title-right .circle{padding: 14px 16px;margin-right:8px;}
+#postBody{border-bottom: 1px solid var(--color-border-default);padding-bottom:36px;}
+#postBody hr{height:2px;}
+#cmButton{height:48px;margin-top:48px;}
+#comments{margin-top:64px;}
+.g-emoji{font-size:24px;}
+@media (max-width: 600px) {
+    body {padding: 8px;}
+    .postTitle{font-size:24px;}
+}
+.copy-feedback {
+    display: none;
+    position: absolute;
+    top: 10px;
+    right: 50px;
+    color: var(--color-fg-on-emphasis);
+    background-color: var(--color-fg-muted);
+    border-radius: 3px;
+    padding: 5px 8px;
+    font-size: 12px;
+}
+</style>
+
+
+
+
+<body>
+    <div id="header">
+<h1 class="postTitle">k8s从0到1设计高可用电商系统（2）应用层配置</h1>
+<div class="title-right">
+    <a href="https://cnmdbbbbb-sys.github.io/test-blog.github.io" id="buttonHome" class="btn btn-invisible circle" title="首页">
+        <svg class="octicon" width="16" height="16">
+            <path id="pathHome" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+    
+    <a href="https://github.com/cnmdbbbbb-sys/test-blog.github.io/issues/10" target="_blank" class="btn btn-invisible circle" title="Issue">
+        <svg class="octicon" width="16" height="16">
+            <path id="pathIssue" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+    
+
+    <a class="btn btn-invisible circle" onclick="modeSwitch();" title="切换主题">
+        <svg class="octicon" width="16" height="16" >
+            <path id="themeSwitch" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+
+</div>
+</div>
+    <div id="content">
+<div class="markdown-body" id="postBody"><h1>第一阶段：配置存储入口</h1>
+<h2>第一步：安装本地存储插件 (StorageClass)</h2>
+<p>这是必须要做的，否则后续部署 MySQL、Redis 和 Prometheus 时，PVC 会一直卡在 Pending 状态。</p>
+<ol>
+<li>安装 Rancher Local Path Provisioner</li>
+</ol>
+<p><code class="notranslate">kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.24/deploy/local-path-storage.yaml</code><br>
+2. 将其设为默认存储类 (关键) 这样以后你不必每次都指定 StorageClass 的名字。</p>
+<p><code class="notranslate">kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'</code><br>
+3. 验证</p>
+<p><code class="notranslate">kubectl get sc</code></p>
+<h2>第二步：安装 Ingress 控制器 (流量入口)</h2>
+<p>需要 Ingress Nginx 来管理外部访问。由于是本地环境，使用兼容性最好的 baremetal 版本。</p>
+<ol>
+<li>安装 Ingress-Nginx Controller</li>
+</ol>
+<p><code class="notranslate">kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/baremetal/deploy.yaml</code><br>
+2. 验证 Pod 启动</p>
+<p><code class="notranslate">kubectl get pods -n ingress-nginx</code></p>
+<h2>第三步：为项目创建专属空间</h2>
+<p>为了不污染系统环境，我们把电商项目都放在独立的 Namespace 里。</p>
+<p><code class="notranslate">kubectl create namespace ecommerce</code><br>
+✅ 阶段性检查<br>
+预期输出：应看到 local-path (default)。<br>
+预期输出：需要等待一会儿，直到 ingress-nginx-controller 变为 Running。<br>
+一旦确认无误，就可以直接部署数据库了！</p>
+<pre class="notranslate"><code class="notranslate">kubectl get sc
+kubectl get pods -n ingress-nginx
+</code></pre>
+<p><a target="_blank" rel="noopener noreferrer" href="https://github.com/user-attachments/assets/19758d3a-5e52-4d2a-86ee-4e39db69c806"><img width="1230" height="173" alt="Image" src="https://github.com/user-attachments/assets/19758d3a-5e52-4d2a-86ee-4e39db69c806" style="max-width: 100%; height: auto; max-height: 173px;"></a></p>
+<h1>第二阶段：数据层部署</h1>
+<p>任何电商系统都离不开数据。我们将部署 MySQL（存储订单和商品）和 Redis（做缓存）。使用 ConfigMap 自动初始化数据库表结构，实现“启动即用”。</p>
+<h2>1. 创建数据层部署文件</h2>
+<p>请直接在终端创建一个名为 db-layer.yaml 的文件：</p>
+<p><code class="notranslate">vim db-layer.yaml</code></p>
+<pre class="notranslate"><code class="notranslate">apiVersion: v1
+kind: Namespace
+metadata:
+  name: ecommerce
+---
+# ===========================
+# 1. MySQL 配置 (自动建库建表)
+# ===========================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-init-script
+  namespace: ecommerce
+data:
+  init.sql: |
+    CREATE DATABASE IF NOT EXISTS shop;
+    USE shop;
+    
+    CREATE TABLE IF NOT EXISTS product (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(100),
+      price DECIMAL(10,2),
+      stock INT
+    );
+    
+    CREATE TABLE IF NOT EXISTS orders (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      product_id INT,
+      user_id INT,
+      amount DECIMAL(10,2),
+      status VARCHAR(20) DEFAULT 'PENDING'
+    );
+    
+    -- 初始化一些测试数据
+    INSERT INTO product (name, price, stock) VALUES ('iPhone 15', 5999.00, 100);
+    INSERT INTO product (name, price, stock) VALUES ('MacBook Pro', 12999.00, 50);
+---
+# ===========================
+# 2. MySQL 部署 (有状态应用)
+# ===========================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+  namespace: ecommerce
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:5.7  # 使用 5.7 版本，资源占用少
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: "123456" # 模拟项目为了方便直接写明文，生产环境请用 Secret
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+        - name: mysql-storage
+          mountPath: /var/lib/mysql
+        - name: init-script
+          mountPath: /docker-entrypoint-initdb.d # 这里是 MySQL 自动初始化的关键目录
+      volumes:
+      - name: mysql-storage
+        persistentVolumeClaim:
+          claimName: mysql-pvc
+      - name: init-script
+        configMap:
+          name: mysql-init-script
+---
+# ===========================
+# 3. MySQL 存储声明 (PVC)
+# ===========================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+  namespace: ecommerce
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+# ===========================
+# 4. MySQL 服务暴露
+# ===========================
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  namespace: ecommerce
+spec:
+  ports:
+  - port: 3306
+  selector:
+    app: mysql
+  clusterIP: None # Headless Service，适合数据库内部通信
+---
+# ===========================
+# 5. Redis 部署 (缓存层)
+# ===========================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: ecommerce
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:alpine
+        ports:
+        - containerPort: 6379
+---
+# ===========================
+# 6. Redis 服务暴露
+# ===========================
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: ecommerce
+spec:
+  ports:
+  - port: 6379
+  selector:
+    app: redis
+</code></pre>
+<h2>2. 执行部署</h2>
+<p>运行以下命令应用配置：</p>
+<p><code class="notranslate">kubectl apply -f db-layer.yaml</code></p>
+<h2>3. 验证部署状态</h2>
+<p>需要确认三件事：</p>
+<p>PVC 绑定成功：看 MySQL 是否成功申请到了存储。<br>
+Pod 运行正常：看数据库是否启动。<br>
+数据初始化成功：看表是不是建好了。</p>
+<p>查看 PVC 状态 (STATUS 必须是 Bound)<br>
+<code class="notranslate">kubectl get pvc -n ecommerce</code><br>
+查看 Pod 状态 (必须是 Running)<br>
+<code class="notranslate">kubectl get pods -n ecommerce</code></p>
+<p>(进阶验证) 进入 MySQL 容器查看表是否存在<br>
+等 Pod Running 后执行：<br>
+<code class="notranslate"> kubectl exec -it -n ecommerce $(kubectl get pod -n ecommerce -l app=mysql -o jsonp</code></p>
+<h1>第三阶段：微服务应用层（Application Layer）</h1>
+<p>使用 ConfigMap-as-Code 把 Python 业务代码直接写在 Kubernetes 的 ConfigMap 里，然后挂载到容器中运行。</p>
+<h2>1. 部署微服务群 (应用层)</h2>
+<p>创建一个新文件 app-layer.yaml：</p>
+<p>vim app-layer.yaml</p>
+<p>逻辑说明：<br>
+Product Service: 提供 /products 接口，模拟从数据库查商品。<br>
+Pay Service: 提供 /pay 接口，模拟 20% 的支付失败率（用于测试重试机制）。<br>
+Order Service: 调用上面两个服务，模拟下单全流程。<br>
+部署策略: 每个服务 2 个副本，演示负载均衡。</p>
+<pre class="notranslate"><code class="notranslate">apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-code
+  namespace: ecommerce
+data:
+  # ===========================
+  # 1. 商品服务代码 (模拟)
+  # ===========================
+  product.py: |
+    from flask import Flask, jsonify
+    import os
+    app = Flask(__name__)
+    
+    @app.route('/product/&lt;id&gt;')
+    def get_product(id):
+        # 模拟从数据库查询 (为了演示简化，直接返回静态 JSON)
+        return jsonify({
+            "id": id,
+            "name": "iPhone 15 Pro",
+            "price": 8999,
+            "stock": 100,
+            "pod": os.getenv("HOSTNAME") # 返回 Pod 名字，证明负载均衡在工作
+        })
+
+    if __name__ == '__main__':
+        app.run(host='0.0.0.0', port=8080)
+
+  # ===========================
+  # 2. 支付服务代码 (模拟高可用故障)
+  # ===========================
+  pay.py: |
+    from flask import Flask, jsonify
+    import random, time, os
+    app = Flask(__name__)
+
+    @app.route('/pay', methods=['POST'])
+    def pay():
+        # 模拟 20% 的随机支付失败
+        if random.random() &lt; 0.2:
+            return jsonify({"error": "Payment Gateway Timeout"}), 500
+        
+        # 模拟网络延迟
+        time.sleep(0.1) 
+        return jsonify({"status": "success", "pod": os.getenv("HOSTNAME")})
+
+    if __name__ == '__main__':
+        app.run(host='0.0.0.0', port=8080)
+
+  # ===========================
+  # 3. 订单服务代码 (核心聚合逻辑)
+  # ===========================
+  order.py: |
+    from flask import Flask, jsonify
+    import requests, os
+    app = Flask(__name__)
+
+    @app.route('/create_order')
+    def create_order():
+        # 1. 调用商品服务
+        try:
+            prod = requests.get('http://product-service:8080/product/1').json()
+        except:
+            return jsonify({"error": "Product Service Down"}), 503
+
+        # 2. 调用支付服务
+        try:
+            pay = requests.post('http://pay-service:8080/pay').json()
+        except:
+            return jsonify({"error": "Payment Failed"}), 500
+
+        # 3. 生成订单
+        return jsonify({
+            "status": "Order Created",
+            "product": prod['name'],
+            "price": prod['price'],
+            "payment": pay,
+            "served_by": os.getenv("HOSTNAME")
+        })
+
+    @app.route('/')
+    def home():
+        return "Welcome to K8s Shop! Try /create_order"
+
+    if __name__ == '__main__':
+        app.run(host='0.0.0.0', port=8080)
+
+---
+# ===========================
+# 通用部署模板 (3个微服务共用配置)
+# ===========================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-service
+  namespace: ecommerce
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: product
+  template:
+    metadata:
+      labels:
+        app: product
+    spec:
+      containers:
+      - name: app
+        image: python:3.9-slim
+        command: ["/bin/sh", "-c"]
+        # 启动时现场安装 Flask 并运行代码
+        args: ["pip install flask requests &amp;&amp; python /app/product.py"]
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: code-volume
+          mountPath: /app
+      volumes:
+      - name: code-volume
+        configMap:
+          name: app-code
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-service
+  namespace: ecommerce
+spec:
+  selector:
+    app: product
+  ports:
+  - port: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pay-service
+  namespace: ecommerce
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pay
+  template:
+    metadata:
+      labels:
+        app: pay
+    spec:
+      containers:
+      - name: app
+        image: python:3.9-slim
+        command: ["/bin/sh", "-c"]
+        args: ["pip install flask requests &amp;&amp; python /app/pay.py"]
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: code-volume
+          mountPath: /app
+      volumes:
+      - name: code-volume
+        configMap:
+          name: app-code
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pay-service
+  namespace: ecommerce
+spec:
+  selector:
+    app: pay
+  ports:
+  - port: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+  namespace: ecommerce
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: order
+  template:
+    metadata:
+      labels:
+        app: order
+    spec:
+      containers:
+      - name: app
+        image: python:3.9-slim
+        command: ["/bin/sh", "-c"]
+        args: ["pip install flask requests &amp;&amp; python /app/order.py"]
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: code-volume
+          mountPath: /app
+      volumes:
+      - name: code-volume
+        configMap:
+          name: app-code
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+  namespace: ecommerce
+spec:
+  selector:
+    app: order
+  ports:
+  - port: 8080
+---
+# ===========================
+# Ingress 入口配置 (对外暴露)
+# ===========================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: shop-ingress
+  namespace: ecommerce
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: order.shop.local  # 虚拟域名
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: order-service
+            port:
+              number: 8080
+</code></pre>
+<h2>2. 执行部署</h2>
+<p><code class="notranslate">kubectl apply -f app-layer.yaml</code><br>
+这些 Pod 启动可能需要 1-2 分钟，因为它们需要在容器启动时运行 pip install 下载 Flask 库。</p>
+<p>使用以下命令观察：</p>
+<p>加上 -w 参数，实时观察状态变化<br>
+kubectl get pods -n ecommerce -w<br>
+等到 product-service, pay-service, order-service 全部变成 Running。</p>
+<h2>3. 最终验证</h2>
+<p>现在整个系统已经跑起来了，我们需要访问它。</p>
+<p>快速验证 (在虚拟机内部) 直接用 curl 访问 Ingress Controller，强制指定 Host 头。<br>
+模拟访问下单接口<br>
+<code class="notranslate">curl -H "Host: order.shop.local" http://127.0.0.1：&lt;端口号&gt;/create_order</code></p>
+<p><a target="_blank" rel="noopener noreferrer" href="https://github.com/user-attachments/assets/51215c48-0551-4f67-b318-495487785b65"><img width="1494" height="63" alt="Image" src="https://github.com/user-attachments/assets/51215c48-0551-4f67-b318-495487785b65" style="max-width: 100%; height: auto; max-height: 63px;"></a></p>
+<p>成功说明：<br>
+流量入口：curl 请求通过 Ingress (Nginx) 进入集群。<br>
+总指挥：流量被路由到 Order Service (served_by 显示的那个 Pod)。<br>
+服务发现与调用：<br>
+Order Service 通过 K8s DNS 找到了 product-service，获取了 iPhone 信息。<br>
+Order Service 找到了 pay-service，完成扣款（由 pay-service-8b65... 这个 Pod 处理）。<br>
+结果聚合：Order Service 把所有结果打包成 JSON 返回。</p>
+<h1>第四阶段：连接真实数据库</h1>
+<p>需要修改 app-layer.yaml 中的 Product Service 部分：<br>
+安装驱动：在启动命令里加上 pymysql 库。<br>
+修改代码：把返回死数据改成连接 MySQL 查询。<br>
+执行 <code class="notranslate">vim app-layer.yaml</code>，找到 app-code ConfigMap 里的 product.py 和下面的 Deployment，按以下内容修改：</p>
+<ol>
+<li>修改 ConfigMap 里的 product.py<br>
+把原来的 product.py 内容替换为：</li>
+</ol>
+<pre class="notranslate"><code class="notranslate">  product.py: |
+    from flask import Flask, jsonify
+    import os, pymysql
+    app = Flask(__name__)
+    
+    def get_db_connection():
+        return pymysql.connect(
+            host='mysql',        # K8s Service 名字，自动解析 IP
+            user='root',
+            password='123456',   # 之前设置的密码
+            db='shop',
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor
+        )
+    
+    @app.route('/product/&lt;id&gt;')
+    def get_product(id):
+        try:
+            connection = get_db_connection()
+            with connection.cursor() as cursor:
+                # 真的去查数据库了！
+                sql = "SELECT * FROM product WHERE id=%s"
+                cursor.execute(sql, (id,))
+                result = cursor.fetchone()
+            connection.close()
+            
+            if result:
+                # 把 Pod 名字加上，方便调试
+                result['pod'] = os.getenv("HOSTNAME")
+                # 转换 Decimal 类型为 float 避免 JSON 报错
+                result['price'] = float(result['price'])
+                return jsonify(result)
+            else:
+                return jsonify({"error": "Not Found"}), 404
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    if __name__ == '__main__':
+        app.run(host='0.0.0.0', port=8080)
+</code></pre>
+<ol start="2">
+<li>修改 Deployment 的启动命令<br>
+找到 product-service 的 Deployment 部分，修改 args 这一行，加上 pymysql：</li>
+</ol>
+<pre class="notranslate"><code class="notranslate">    containers:
+     - name: app
+       # ... 镜像和其他配置不变 ...
+       # 注意：加上了 pymysql
+       args: ["pip install -i https://mirrors.aliyun.com/pypi/simple/ flask requests pymysql &amp;&amp; python /app/product.py"] 
+</code></pre>
+<p>执行更新</p>
+<h1>1. 应用新配置</h1>
+<p><code class="notranslate">kubectl apply -f app-layer.yaml</code></p>
+<h1>2. 重启 Product 服务 (让它加载新代码)</h1>
+<p><code class="notranslate">kubectl delete pods -n ecommerce -l app=product</code><br>
+等新的 Product Pod 跑起来之后，再次执行 curl：</p>
+<p><code class="notranslate">curl -H "Host: order.shop.local" http://127.0.0.1:30628/create_order</code><br>
+观察变化： 如果你看到的价格变成了 5999.0（在数据库初始化脚本里写的价格），而不是代码里写死的 8999，那就证明已经成功构建了一个包含：流量入口(Ingress)、服务发现(Service)、负载均衡、故障模拟、以及持久化数据库(MySQL)的完整 Kubernetes 微服务电商系统！</p></div>
+<div style="font-size:small;margin-top:8px;float:right;"></div>
+
+<button class="btn btn-block" type="button" onclick="openComments()" id="cmButton">评论</button>
+<div class="comments" id="comments"></div>
+
+</div>
+    <div id="footer"><div id="footer1">Copyright © <span id="copyrightYear"></span> <a href="https://cnmdbbbbb-sys.github.io/test-blog.github.io">与其提升自己，不如抱怨他人</a></div>
+<div id="footer2">
+    <span id="runday"></span><span>Powered by <a href="https://meekdai.com/Gmeek.html" target="_blank">Gmeek</a></span>
+</div>
+
+<script>
+var now=new Date();
+document.getElementById("copyrightYear").innerHTML=now.getFullYear();
+
+if(""!=""){
+    var startSite=new Date("");
+    var diff=now.getTime()-startSite.getTime();
+    var diffDay=Math.floor(diff/(1000*60*60*24));
+    document.getElementById("runday").innerHTML="网站运行"+diffDay+"天"+" • ";
+}
+</script></div>
+</body>
+<script>
+var IconList={'sun': 'M8 10.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM8 12a4 4 0 100-8 4 4 0 000 8zM8 0a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0V.75A.75.75 0 018 0zm0 13a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 018 13zM2.343 2.343a.75.75 0 011.061 0l1.06 1.061a.75.75 0 01-1.06 1.06l-1.06-1.06a.75.75 0 010-1.06zm9.193 9.193a.75.75 0 011.06 0l1.061 1.06a.75.75 0 01-1.06 1.061l-1.061-1.06a.75.75 0 010-1.061zM16 8a.75.75 0 01-.75.75h-1.5a.75.75 0 010-1.5h1.5A.75.75 0 0116 8zM3 8a.75.75 0 01-.75.75H.75a.75.75 0 010-1.5h1.5A.75.75 0 013 8zm10.657-5.657a.75.75 0 010 1.061l-1.061 1.06a.75.75 0 11-1.06-1.06l1.06-1.06a.75.75 0 011.06 0zm-9.193 9.193a.75.75 0 010 1.06l-1.06 1.061a.75.75 0 11-1.061-1.06l1.06-1.061a.75.75 0 011.061 0z', 'moon': 'M9.598 1.591a.75.75 0 01.785-.175 7 7 0 11-8.967 8.967.75.75 0 01.961-.96 5.5 5.5 0 007.046-7.046.75.75 0 01.175-.786zm1.616 1.945a7 7 0 01-7.678 7.678 5.5 5.5 0 107.678-7.678z', 'sync': 'M1.705 8.005a.75.75 0 0 1 .834.656 5.5 5.5 0 0 0 9.592 2.97l-1.204-1.204a.25.25 0 0 1 .177-.427h3.646a.25.25 0 0 1 .25.25v3.646a.25.25 0 0 1-.427.177l-1.38-1.38A7.002 7.002 0 0 1 1.05 8.84a.75.75 0 0 1 .656-.834ZM8 2.5a5.487 5.487 0 0 0-4.131 1.869l1.204 1.204A.25.25 0 0 1 4.896 6H1.25A.25.25 0 0 1 1 5.75V2.104a.25.25 0 0 1 .427-.177l1.38 1.38A7.002 7.002 0 0 1 14.95 7.16a.75.75 0 0 1-1.49.178A5.5 5.5 0 0 0 8 2.5Z', 'home': 'M6.906.664a1.749 1.749 0 0 1 2.187 0l5.25 4.2c.415.332.657.835.657 1.367v7.019A1.75 1.75 0 0 1 13.25 15h-3.5a.75.75 0 0 1-.75-.75V9H7v5.25a.75.75 0 0 1-.75.75h-3.5A1.75 1.75 0 0 1 1 13.25V6.23c0-.531.242-1.034.657-1.366l5.25-4.2Zm1.25 1.171a.25.25 0 0 0-.312 0l-5.25 4.2a.25.25 0 0 0-.094.196v7.019c0 .138.112.25.25.25H5.5V8.25a.75.75 0 0 1 .75-.75h3.5a.75.75 0 0 1 .75.75v5.25h2.75a.25.25 0 0 0 .25-.25V6.23a.25.25 0 0 0-.094-.195Z', 'github': 'M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z', 'copy': 'M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z', 'check': 'M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z'};
+var utterancesLoad=0;
+
+let themeSettings={
+    "dark": ["dark","moon","#00f0ff","dark-blue"],
+    "light": ["light","sun","#ff5000","github-light"],
+    "auto": ["auto","sync","","preferred-color-scheme"]
+};
+function changeTheme(mode, icon, color, utheme){
+    document.documentElement.setAttribute("data-color-mode",mode);
+    document.getElementById("themeSwitch").setAttribute("d",value=IconList[icon]);
+    document.getElementById("themeSwitch").parentNode.style.color=color;
+    if(utterancesLoad==1){utterancesTheme(utheme);}
+}
+function modeSwitch(){
+    let currentMode=document.documentElement.getAttribute('data-color-mode');
+    let newMode = currentMode === "light" ? "dark" : currentMode === "dark" ? "auto" : "light";
+    localStorage.setItem("meek_theme", newMode);
+    if(themeSettings[newMode]){
+        changeTheme(...themeSettings[newMode]);
+    }
+}
+function utterancesTheme(theme){
+    const message={type:'set-theme',theme: theme};
+    const iframe=document.getElementsByClassName('utterances-frame')[0];
+    iframe.contentWindow.postMessage(message,'https://utteranc.es');
+}
+if(themeSettings[theme]){changeTheme(...themeSettings[theme]);}
+console.log("\n %c Gmeek last https://github.com/Meekdai/Gmeek \n","padding:5px 0;background:#02d81d;color:#fff");
+</script>
+
+<script>
+document.getElementById("pathHome").setAttribute("d",IconList["home"]);
+document.getElementById("pathIssue").setAttribute("d",IconList["github"]);
+
+
+
+function openComments(){
+    cm=document.getElementById("comments");
+    cmButton=document.getElementById("cmButton");
+    cmButton.innerHTML="loading";
+    span=document.createElement("span");
+    span.setAttribute("class","AnimatedEllipsis");
+    cmButton.appendChild(span);
+
+    script=document.createElement("script");
+    script.setAttribute("src","https://utteranc.es/client.js");
+    script.setAttribute("repo","cnmdbbbbb-sys/test-blog.github.io");
+    script.setAttribute("issue-term","title");
+    
+    if(localStorage.getItem("meek_theme")=="dark"){script.setAttribute("theme","dark-blue");}
+    else if(localStorage.getItem("meek_theme")=="light") {script.setAttribute("theme","github-light");}
+    else{script.setAttribute("theme","preferred-color-scheme");}
+    
+    script.setAttribute("crossorigin","anonymous");
+    script.setAttribute("async","");
+    cm.appendChild(script);
+
+    int=self.setInterval("iFrameLoading()",200);
+}
+
+function iFrameLoading(){
+    var utterances=document.getElementsByClassName('utterances');
+    if(utterances.length==1){
+        if(utterances[0].style.height!=""){
+            utterancesLoad=1;
+            int=window.clearInterval(int);
+            document.getElementById("cmButton").style.display="none";
+            console.log("utterances Load OK");
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const createClipboardHTML = (codeContent, additionalClasses = '') => `
+        <pre class="notranslate"><code class="notranslate">${codeContent}</code></pre>
+        <div class="clipboard-container position-absolute right-0 top-0 ${additionalClasses}">
+            <clipboard-copy class="ClipboardButton btn m-2 p-0" role="button" style="display: inherit;">
+                <svg height="16" width="16" class="octicon octicon-copy m-2"><path d="${IconList["copy"]}"></path></svg>
+                <svg height="16" width="16" class="octicon octicon-check color-fg-success m-2 d-none"><path d="${IconList["check"]}"></path></svg>
+            </clipboard-copy>
+            <div class="copy-feedback">Copied!</div>
+        </div>
+    `;
+
+    const handleCodeElements = (selector = '') => {
+        document.querySelectorAll(selector).forEach(codeElement => {
+            const codeContent = codeElement.innerHTML;
+            const newStructure = document.createElement('div');
+            newStructure.className = 'snippet-clipboard-content position-relative overflow-auto';
+            newStructure.innerHTML = createClipboardHTML(codeContent);
+
+            const parentElement = codeElement.parentElement;
+            if (selector.includes('highlight')) {
+                parentElement.insertBefore(newStructure, codeElement.nextSibling);
+                parentElement.removeChild(codeElement);
+            } else {
+                parentElement.parentElement.replaceChild(newStructure, parentElement);
+            }
+        });
+    };
+
+    handleCodeElements('pre.notranslate > code.notranslate');
+    handleCodeElements('div.highlight > pre.notranslate');
+
+    let currentFeedback = null;
+    document.querySelectorAll('clipboard-copy').forEach(copyButton => {
+        copyButton.addEventListener('click', () => {
+            const codeContent = copyButton.closest('.snippet-clipboard-content').innerText;
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = codeContent;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextArea);
+
+            const copyIcon = copyButton.querySelector('.octicon-copy');
+            const checkIcon = copyButton.querySelector('.octicon-check');
+            const copyFeedback = copyButton.nextElementSibling;
+
+            if (currentFeedback && currentFeedback !== copyFeedback) {currentFeedback.style.display = 'none';}
+            currentFeedback = copyFeedback;
+
+            copyIcon.classList.add('d-none');
+            checkIcon.classList.remove('d-none');
+            copyFeedback.style.display = 'block';
+            copyButton.style.borderColor = 'var(--color-success-fg)';
+
+            setTimeout(() => {
+                copyIcon.classList.remove('d-none');
+                checkIcon.classList.add('d-none');
+                copyFeedback.style.display = 'none';
+                copyButton.style.borderColor = '';
+            }, 2000);
+        });
+    });
+});
+
+</script>
+
+
+</html>
