@@ -124,8 +124,7 @@ kubectl get pods -n ingress-nginx
 ## 1. 创建数据层部署文件
 请直接在终端创建一个名为 db-layer.yaml 的文件：
 <p><code class="notranslate">vim db-layer.yaml</code></p>
-<pre class="notranslate"><code class="notranslate">YAML
-apiVersion: v1
+<pre class="notranslate"><code class="notranslate">apiVersion: v1
 kind: Namespace
 metadata:
   name: ecommerce
@@ -294,8 +293,7 @@ Product Service: 提供 /products 接口，模拟从数据库查商品。<br>
 Pay Service: 提供 /pay 接口，模拟 20% 的支付失败率（用于测试重试机制）。<br>
 Order Service: 调用上面两个服务，模拟下单全流程。<br>
 部署策略: 每个服务 2 个副本，演示负载均衡。</p>
-<pre class="notranslate"><code class="notranslate">YAML
-apiVersion: v1
+<pre class="notranslate"><code class="notranslate">apiVersion: v1
 kind: ConfigMap
 metadata:
   name: app-code
@@ -553,7 +551,74 @@ kubectl get pods -n ecommerce -w<br>
 服务发现与调用：<br>
 Order Service 通过 K8s DNS 找到了 product-service，获取了 iPhone 信息。<br>
 Order Service 找到了 pay-service，完成扣款（由 pay-service-8b65... 这个 Pod 处理）。<br>
-结果聚合：Order Service 把所有结果打包成 JSON 返回。</p></div>
+结果聚合：Order Service 把所有结果打包成 JSON 返回。</p>
+<h1>第四阶段：连接真实数据库</h1>
+<p>需要修改 app-layer.yaml 中的 Product Service 部分：<br>
+安装驱动：在启动命令里加上 pymysql 库。<br>
+修改代码：把返回死数据改成连接 MySQL 查询。<br>
+执行 <code class="notranslate">vim app-layer.yaml</code>，找到 app-code ConfigMap 里的 product.py 和下面的 Deployment，按以下内容修改：</p>
+<ol>
+<li>修改 ConfigMap 里的 product.py<br>
+把原来的 product.py 内容替换为：</li>
+</ol>
+<pre class="notranslate"><code class="notranslate">  product.py: |
+    from flask import Flask, jsonify
+    import os, pymysql
+    app = Flask(__name__)
+    
+    def get_db_connection():
+        return pymysql.connect(
+            host='mysql',        # K8s Service 名字，自动解析 IP
+            user='root',
+            password='123456',   # 之前设置的密码
+            db='shop',
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor
+        )
+    
+    @app.route('/product/&lt;id&gt;')
+    def get_product(id):
+        try:
+            connection = get_db_connection()
+            with connection.cursor() as cursor:
+                # 真的去查数据库了！
+                sql = "SELECT * FROM product WHERE id=%s"
+                cursor.execute(sql, (id,))
+                result = cursor.fetchone()
+            connection.close()
+            
+            if result:
+                # 把 Pod 名字加上，方便调试
+                result['pod'] = os.getenv("HOSTNAME")
+                # 转换 Decimal 类型为 float 避免 JSON 报错
+                result['price'] = float(result['price'])
+                return jsonify(result)
+            else:
+                return jsonify({"error": "Not Found"}), 404
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    if __name__ == '__main__':
+        app.run(host='0.0.0.0', port=8080)
+</code></pre>
+<ol start="2">
+<li>修改 Deployment 的启动命令<br>
+找到 product-service 的 Deployment 部分，修改 args 这一行，加上 pymysql：</li>
+</ol>
+<pre class="notranslate"><code class="notranslate">    containers:
+     - name: app
+       # ... 镜像和其他配置不变 ...
+       # 注意：加上了 pymysql
+       args: ["pip install -i https://mirrors.aliyun.com/pypi/simple/ flask requests pymysql &amp;&amp; python /app/product.py"] 
+</code></pre>
+<p>执行更新</p>
+<h1>1. 应用新配置</h1>
+<p><code class="notranslate">kubectl apply -f app-layer.yaml</code></p>
+<h1>2. 重启 Product 服务 (让它加载新代码)</h1>
+<p><code class="notranslate">kubectl delete pods -n ecommerce -l app=product</code><br>
+等新的 Product Pod 跑起来之后，再次执行 curl：</p>
+<p><code class="notranslate">curl -H "Host: order.shop.local" http://127.0.0.1:30628/create_order</code><br>
+观察变化： 如果你看到的价格变成了 5999.0（在数据库初始化脚本里写的价格），而不是代码里写死的 8999，那就证明已经成功构建了一个包含：流量入口(Ingress)、服务发现(Service)、负载均衡、故障模拟、以及持久化数据库(MySQL)的完整 Kubernetes 微服务电商系统！</p></div>
 <div style="font-size:small;margin-top:8px;float:right;"></div>
 
 <button class="btn btn-block" type="button" onclick="openComments()" id="cmButton">评论</button>
