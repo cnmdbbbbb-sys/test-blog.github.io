@@ -283,7 +283,269 @@ Pod 运行正常：看数据库是否启动。<br>
 <code class="notranslate">kubectl get pods -n ecommerce</code></p>
 <p>(进阶验证) 进入 MySQL 容器查看表是否存在<br>
 等 Pod Running 后执行：<br>
-<code class="notranslate"> kubectl exec -it -n ecommerce $(kubectl get pod -n ecommerce -l app=mysql -o jsonp</code></p></div>
+<code class="notranslate"> kubectl exec -it -n ecommerce $(kubectl get pod -n ecommerce -l app=mysql -o jsonp</code></p>
+<h1>第三阶段：微服务应用层（Application Layer）</h1>
+<p>使用 ConfigMap-as-Code 把 Python 业务代码直接写在 Kubernetes 的 ConfigMap 里，然后挂载到容器中运行。</p>
+<h2>1. 部署微服务群 (应用层)</h2>
+<p>创建一个新文件 app-layer.yaml：</p>
+<p>vim app-layer.yaml</p>
+<p>逻辑说明：<br>
+Product Service: 提供 /products 接口，模拟从数据库查商品。<br>
+Pay Service: 提供 /pay 接口，模拟 20% 的支付失败率（用于测试重试机制）。<br>
+Order Service: 调用上面两个服务，模拟下单全流程。<br>
+部署策略: 每个服务 2 个副本，演示负载均衡。</p>
+<pre class="notranslate"><code class="notranslate">YAML
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-code
+  namespace: ecommerce
+data:
+  # ===========================
+  # 1. 商品服务代码 (模拟)
+  # ===========================
+  product.py: |
+    from flask import Flask, jsonify
+    import os
+    app = Flask(__name__)
+    
+    @app.route('/product/&lt;id&gt;')
+    def get_product(id):
+        # 模拟从数据库查询 (为了演示简化，直接返回静态 JSON)
+        return jsonify({
+            "id": id,
+            "name": "iPhone 15 Pro",
+            "price": 8999,
+            "stock": 100,
+            "pod": os.getenv("HOSTNAME") # 返回 Pod 名字，证明负载均衡在工作
+        })
+
+    if __name__ == '__main__':
+        app.run(host='0.0.0.0', port=8080)
+
+  # ===========================
+  # 2. 支付服务代码 (模拟高可用故障)
+  # ===========================
+  pay.py: |
+    from flask import Flask, jsonify
+    import random, time, os
+    app = Flask(__name__)
+
+    @app.route('/pay', methods=['POST'])
+    def pay():
+        # 模拟 20% 的随机支付失败
+        if random.random() &lt; 0.2:
+            return jsonify({"error": "Payment Gateway Timeout"}), 500
+        
+        # 模拟网络延迟
+        time.sleep(0.1) 
+        return jsonify({"status": "success", "pod": os.getenv("HOSTNAME")})
+
+    if __name__ == '__main__':
+        app.run(host='0.0.0.0', port=8080)
+
+  # ===========================
+  # 3. 订单服务代码 (核心聚合逻辑)
+  # ===========================
+  order.py: |
+    from flask import Flask, jsonify
+    import requests, os
+    app = Flask(__name__)
+
+    @app.route('/create_order')
+    def create_order():
+        # 1. 调用商品服务
+        try:
+            prod = requests.get('http://product-service:8080/product/1').json()
+        except:
+            return jsonify({"error": "Product Service Down"}), 503
+
+        # 2. 调用支付服务
+        try:
+            pay = requests.post('http://pay-service:8080/pay').json()
+        except:
+            return jsonify({"error": "Payment Failed"}), 500
+
+        # 3. 生成订单
+        return jsonify({
+            "status": "Order Created",
+            "product": prod['name'],
+            "price": prod['price'],
+            "payment": pay,
+            "served_by": os.getenv("HOSTNAME")
+        })
+
+    @app.route('/')
+    def home():
+        return "Welcome to K8s Shop! Try /create_order"
+
+    if __name__ == '__main__':
+        app.run(host='0.0.0.0', port=8080)
+
+---
+# ===========================
+# 通用部署模板 (3个微服务共用配置)
+# ===========================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-service
+  namespace: ecommerce
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: product
+  template:
+    metadata:
+      labels:
+        app: product
+    spec:
+      containers:
+      - name: app
+        image: python:3.9-slim
+        command: ["/bin/sh", "-c"]
+        # 启动时现场安装 Flask 并运行代码
+        args: ["pip install flask requests &amp;&amp; python /app/product.py"]
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: code-volume
+          mountPath: /app
+      volumes:
+      - name: code-volume
+        configMap:
+          name: app-code
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-service
+  namespace: ecommerce
+spec:
+  selector:
+    app: product
+  ports:
+  - port: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pay-service
+  namespace: ecommerce
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pay
+  template:
+    metadata:
+      labels:
+        app: pay
+    spec:
+      containers:
+      - name: app
+        image: python:3.9-slim
+        command: ["/bin/sh", "-c"]
+        args: ["pip install flask requests &amp;&amp; python /app/pay.py"]
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: code-volume
+          mountPath: /app
+      volumes:
+      - name: code-volume
+        configMap:
+          name: app-code
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pay-service
+  namespace: ecommerce
+spec:
+  selector:
+    app: pay
+  ports:
+  - port: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+  namespace: ecommerce
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: order
+  template:
+    metadata:
+      labels:
+        app: order
+    spec:
+      containers:
+      - name: app
+        image: python:3.9-slim
+        command: ["/bin/sh", "-c"]
+        args: ["pip install flask requests &amp;&amp; python /app/order.py"]
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: code-volume
+          mountPath: /app
+      volumes:
+      - name: code-volume
+        configMap:
+          name: app-code
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+  namespace: ecommerce
+spec:
+  selector:
+    app: order
+  ports:
+  - port: 8080
+---
+# ===========================
+# Ingress 入口配置 (对外暴露)
+# ===========================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: shop-ingress
+  namespace: ecommerce
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: order.shop.local  # 虚拟域名
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: order-service
+            port:
+              number: 8080
+</code></pre>
+<h2>2. 执行部署</h2>
+<p><code class="notranslate">kubectl apply -f app-layer.yaml</code><br>
+这些 Pod 启动可能需要 1-2 分钟，因为它们需要在容器启动时运行 pip install 下载 Flask 库。</p>
+<p>使用以下命令观察：</p>
+<p>加上 -w 参数，实时观察状态变化<br>
+kubectl get pods -n ecommerce -w<br>
+等到 product-service, pay-service, order-service 全部变成 Running。</p>
+<h2>3. 最终验证</h2>
+<p>现在整个系统已经跑起来了，我们需要访问它。</p>
+<p>快速验证 (在虚拟机内部) 直接用 curl 访问 Ingress Controller，强制指定 Host 头。<br>
+模拟访问下单接口<br>
+<code class="notranslate">curl -H "Host: order.shop.local" http://127.0.0.1/create_order</code></p></div>
 <div style="font-size:small;margin-top:8px;float:right;"></div>
 
 <button class="btn btn-block" type="button" onclick="openComments()" id="cmButton">评论</button>
